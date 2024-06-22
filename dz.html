@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Прогноз погоды</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            text-align: center;
+        }
+
+        h1, h2 {
+            margin: 20px 0;
+        }
+
+        #current-weather, #forecast {
+            display: inline-block;
+            width: 45%;
+            vertical-align: top;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #forecast-days {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .forecast-day {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<h1>Прогноз погоды для вашего города</h1>
+<div id="current-weather">
+    <h2>Текущая погода</h2>
+    <p>Город: <span id="city-name"></span></p>
+    <p>Страна: <span id="country-name"></span></p>
+    <p>Последнее обновление: <span id="last-updated"></span></p>
+    <p>Температура: <span id="temperature"></span> °C</p>
+    <img id="weather-icon" src="" alt="Иконка погоды">
+    <p>Описание: <span id="weather-description"></span></p>
+    <p>Скорость ветра: <span id="wind-speed"></span> км/час</p>
+    <p>Осадки: <span id="precipitation"></span> мм</p>
+    <p>Давление: <span id="pressure"></span> мб</p>
+</div>
+<div id="forecast">
+    <h2>Прогноз на 5 дней</h2>
+    <div id="forecast-days"></div>
+</div>
+<script>
+    $(document).ready(function() {
+        const apiKey = '9eea4428fcef4a86b65122530242206';
+        const city = 'Краматорск';
+
+        function fetchWeather() {
+            const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${city}&days=5&aqi=no&alerts=no`;
+
+            $.getJSON(url, function(data) {
+                // Текущая погода
+                $('#city-name').text(data.location.name);
+                $('#country-name').text(data.location.country);
+                $('#last-updated').text(data.current.last_updated);
+                $('#temperature').text(data.current.temp_c);
+                $('#weather-icon').attr('src', data.current.condition.icon);
+                $('#weather-description').text(data.current.condition.text);
+                $('#wind-speed').text(data.current.wind_kph);
+                $('#precipitation').text(data.current.precip_mm);
+                $('#pressure').text(data.current.pressure_mb);
+
+                // Прогноз на 5 дней
+                let forecastHtml = '';
+                data.forecast.forecastday.forEach(function(day) {
+                    const date = new Date(day.date);
+                    const options = { weekday: 'long' };
+                    const dayName = date.toLocaleDateString('ru-RU', options);
+
+                    forecastHtml += `
+                            <div class="forecast-day">
+                                <p>${dayName}</p>
+                                <p>${day.date}</p>
+                                <img src="${day.day.condition.icon}" alt="${day.day.condition.text}">
+                                <p>${day.day.avgtemp_c} °C</p>
+                            </div>
+                        `;
+                });
+                $('#forecast-days').html(forecastHtml);
+            }).fail(function() {
+                alert('Ошибка при получении данных о погоде');
+            });
+        }
+
+        fetchWeather();
+    });
+</script>
+</body>
+</html>
